@@ -6,6 +6,66 @@
   <title>Player Journal</title>
 </head>
 <body>
+    <h2>Login</h2>
+<form id="loginForm">
+  <label for="username">Username:</label>
+  <input type="text" id="username" name="username" required>
+  <label for="password">Password:</label>
+  <input type="password" id="password" name="password" required>
+  <button type="submit">Login</button>
+</form>
+
+<div id="userRoleSection" style="display: none;">
+  <h3 id="roleDisplay"></h3>
+  <button id="exportButton" style="display: none;">Export My JSON Data</button>
+</div>
+
+<script>
+    document.getElementById('exportButton').addEventListener('click', async () => {
+  const username = document.getElementById('username').value;
+  
+  // Fetch the export endpoint
+  const response = await fetch(`/export?username=${username}`);
+  if (response.ok) {
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'journal.json';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  } else {
+    alert('You do not have permission to export data.');
+  }
+});
+
+  document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+
+    const response = await fetch('/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      document.getElementById('userRoleSection').style.display = 'block';
+      document.getElementById('roleDisplay').innerText = `Role: ${result.role}`;
+
+      if (['player', 'dungeonmaster'].includes(result.role)) {
+        document.getElementById('exportButton').style.display = 'block';
+      }
+    } else {
+      alert('Invalid login credentials');
+    }
+  });
+</script>
+
   <h1>Player Journal Entry</h1>
   <form id="journalForm">
     <label for="name">Player Name:</label>
