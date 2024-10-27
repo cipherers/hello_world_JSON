@@ -6,7 +6,7 @@ const path = require('path');
 const app = express();
 const PORT = 3000;
 
-// Middleware to parse JSON bodies
+// Middleware to parse JSON and URL-encoded bodies
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -15,31 +15,31 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Endpoint to receive form data and write to JSON
-app.post('/submit', (req, res) => {
-  const newData = req.body;
+// Endpoint to receive journal entries
+app.post('/journal', (req, res) => {
+  const entry = req.body;
 
-  // Read the current data from 'data.json'
-  fs.readFile('data.json', 'utf8', (err, data) => {
+  // Read existing data from 'journal.json'
+  fs.readFile('journal.json', 'utf8', (err, data) => {
     if (err) {
       console.error(err);
-      return res.status(500).json({ message: 'Error reading file' });
+      return res.status(500).json({ message: 'Error reading journal file' });
     }
 
-    // Parse existing data or initialize an empty array
-    const jsonData = data ? JSON.parse(data) : [];
+    // Parse existing data or create a new array
+    const journalEntries = data ? JSON.parse(data) : [];
 
-    // Add new data to the array
-    jsonData.push(newData);
+    // Add new entry
+    journalEntries.push(entry);
 
-    // Write updated data back to 'data.json'
-    fs.writeFile('data.json', JSON.stringify(jsonData, null, 2), 'utf8', (err) => {
+    // Write updated data back to 'journal.json'
+    fs.writeFile('journal.json', JSON.stringify(journalEntries, null, 2), 'utf8', (err) => {
       if (err) {
         console.error(err);
-        return res.status(500).json({ message: 'Error writing to file' });
+        return res.status(500).json({ message: 'Error writing to journal file' });
       }
 
-      res.json({ message: 'Data saved successfully!' });
+      res.json({ message: 'Journal entry saved successfully!' });
     });
   });
 });
